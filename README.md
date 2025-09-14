@@ -22,7 +22,7 @@ In this fast-paced e-commerce landscape, staying ahead demands not just meeting 
 
 ### Solution
 
-* github link: https://github.com/ankurdhuriya/SentimentBasedProductRecommendation
+* github link:https://github.com/ramuautomation/SentimentBasedProductRecommendation
 
 ### Built with
 
