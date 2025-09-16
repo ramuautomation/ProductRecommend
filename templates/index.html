@@ -12,25 +12,48 @@
   <div class="container py-4">
     <h1 class="mb-4">Product Recommendation System</h1>
 
-    <form class="row row-cols-lg-auto g-3 align-items-center" method="POST" action="{{ url_for('prediction') }}">
-  <div class="input-group">
-    <div class="input-group-text">Username</div>
-    <input type="text" class="form-control" id="userName" name="userName" placeholder="Enter username" required>
-  </div>
-  <button type="submit" class="btn btn-primary">Submit</button>
-</form>
+    <!-- Recommendation form -->
+    <form class="row row-cols-lg-auto g-3 align-items-center mb-3" method="POST" action="{{ url_for('prediction') }}">
+      <div class="input-group">
+        <div class="input-group-text">Username</div>
+        <input type="text" class="form-control" id="userName" name="userName" placeholder="Enter username" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Get Recommendations</button>
+    </form>
 
-    <br>
+    <!-- Sentiment classification form -->
+    <form class="mb-4" method="POST" action="{{ url_for('predict_sentiment') }}">
+      <div class="mb-2">
+        <label for="reviewText" class="form-label">Classify review sentiment</label>
+        <textarea class="form-control" id="reviewText" name="reviewText" rows="2" placeholder="Type a review to classify"></textarea>
+      </div>
+      <button type="submit" class="btn btn-secondary">Predict Sentiment</button>
+    </form>
 
     <div class="mb-2">
       <span class="text-danger">Sample usernames (enter one at a time):</span>
       <kbd>rebecca</kbd> &nbsp; <kbd>joshua</kbd> &nbsp; <kbd>samantha</kbd> &nbsp; <kbd>dorothy w</kbd> &nbsp; <kbd>walker557</kbd>
     </div>
 
-    <!-- Feedback message (show only when 'text' is provided) -->
-    {% if text %}
-      <div class="alert alert-{{ alert_type | default('success') }}" role="alert">
-        {{ text }}
+    <!-- Feedback message (uses 'message' from Flask) -->
+    {% if message %}
+      <div class="alert alert-{{ alert_type | default('info') }}" role="alert">
+        {{ message }}
+      </div>
+    {% endif %}
+
+    <!-- Sentiment result -->
+    {% if sentiment is not none %}
+      <div class="mb-3">
+        <h5>Predicted sentiment: 
+          {% if sentiment == 1 or sentiment == '1' %}
+            <span class="badge bg-success">Positive</span>
+          {% elif sentiment == 0 or sentiment == '0' %}
+            <span class="badge bg-danger">Negative</span>
+          {% else %}
+            <span class="badge bg-secondary">{{ sentiment }}</span>
+          {% endif %}
+        </h5>
       </div>
     {% endif %}
 
