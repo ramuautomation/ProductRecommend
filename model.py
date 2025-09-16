@@ -7,12 +7,12 @@ import pandas as pd
 import numpy as np
 import re
 import string
-import nltk
-nltk.download('stopwords')
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
-nltk.download('wordnet')
-nltk.download('omw-1.4')
+#import nltk
+#nltk.download('stopwords')
+#nltk.download('punkt')
+#nltk.download('averaged_perceptron_tagger')
+#nltk.download('wordnet')
+#nltk.download('omw-1.4')
 #nltk.download('punkt_tab')
 #nltk.download('averaged_perceptron_tagger_eng')
 
