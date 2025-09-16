@@ -6,6 +6,9 @@ app = Flask(__name__)
 
 sentiment_model = SentimentRecommenderModel()
 
+@app.route("/health")
+def health():
+    return {"status": "ok"}
 
 @app.route('/')
 def home():
@@ -40,4 +43,6 @@ def predict_sentiment():
 
 
 if __name__ == '__main__':
-    app.run()
+    import os
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
