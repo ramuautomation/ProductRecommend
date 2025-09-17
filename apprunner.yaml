@@ -1,21 +1,21 @@
+# applrunner.yaml — corrected format (use this exactly)
 version: 1.0
 runtime: python3
 
 build:
   commands:
-    # show builder python and pip versions
-    - python -V
-    - python -m pip install --upgrade pip
-    - pip --version
-    # install runtime deps and pre-download NLTK
-    - pip install -r requirements.txt
-    - python download_nltk.py || echo "download_nltk.py missing or failed"
-    - echo "build finished"
+    preBuild:
+      - python -V
+      - python -m pip install --upgrade pip
+      - pip --version
+    build:
+      - pip install -r requirements.txt
+      - python download_nltk.py || echo "download_nltk.py missing or failed"
+    postBuild:
+      - echo "build finished"
 
 run:
-  # request Python 3.11 runtime (builder may still be 3.9)
   runtime-version: "3.11"
-  # single-line command to avoid parser ambiguity
   command: "gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120"
   network:
     port: 8080
