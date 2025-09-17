@@ -1,28 +1,24 @@
-# apprunner.yaml (place at repo root)
 version: 1.0
 runtime: python3
 
 build:
   commands:
-    pre-build:
-      - python -V
-      - python -m pip install --upgrade pip
-    build:
-      - pip --version
-      - pip install -r requirements.txt
-      - python download_nltk.py || echo "download_nltk.py missing or failed"
-    post-build:
-      - echo "build finished"
+    # show builder python and pip versions
+    - python -V
+    - python -m pip install --upgrade pip
+    - pip --version
+    # install runtime deps and pre-download NLTK
+    - pip install -r requirements.txt
+    - python download_nltk.py || echo "download_nltk.py missing or failed"
+    - echo "build finished"
 
 run:
-  # Try to request Python 3.11 runtime; note the builder may still use its managed image.
-  runtime-version: 3.11
-  command: >
-    gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120
+  # request Python 3.11 runtime (builder may still be 3.9)
+  runtime-version: "3.11"
+  # single-line command to avoid parser ambiguity
+  command: "gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120"
   network:
     port: 8080
-
-run:
   env:
     - name: FLASK_ENV
       value: "production"
