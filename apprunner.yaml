@@ -3,14 +3,14 @@ runtime: python3
 
 build:
   commands:
-    preBuild:
+    pre-build:
       - python -V
       - python -m pip install --upgrade pip
       - pip --version
     build:
       - pip install -r requirements.txt
       - python download_nltk.py || echo "download_nltk.py missing or failed"
-    postBuild:
+    post-build:
       - echo "build finished"
 
 run:
