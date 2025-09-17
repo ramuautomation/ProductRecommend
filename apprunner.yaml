@@ -14,7 +14,7 @@ build:
       - echo "build finished"
 
 run:
-  runtime-version: "3.11"
+  # omit runtime-version to avoid unsupported runtime errors
   command: "gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120"
   network:
     port: 8080
