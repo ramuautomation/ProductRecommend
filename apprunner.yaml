@@ -1,19 +1,21 @@
-# apprunner.yaml (use Python 3.11 runtime so package wheels match)
+# apprunner.yaml (place at repo root)
 version: 1.0
 runtime: python3
 
 build:
   commands:
     pre-build:
+      - python -V
       - python -m pip install --upgrade pip
     build:
+      - pip --version
       - pip install -r requirements.txt
-      - python download_nltk.py || echo "download_nltk.py not found or failed"
+      - python download_nltk.py || echo "download_nltk.py missing or failed"
     post-build:
       - echo "build finished"
 
 run:
-  # Lock to Python 3.11 for the build/runtime environment
+  # Try to request Python 3.11 runtime; note the builder may still use its managed image.
   runtime-version: 3.11
   command: >
     gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120
