@@ -3,18 +3,12 @@ runtime: python3
 
 build:
   commands:
-    pre-build:
-      - python -V
-      - python -m pip install --upgrade pip
-      - pip --version
     build:
       - pip install -r requirements.txt
-      - python download_nltk.py || echo "download_nltk.py missing or failed"
-    post-build:
-      - echo "build finished"
+      - python download_nltk.py || echo "no download script"
 
 run:
-  # omit runtime-version to avoid unsupported runtime errors
+  # omit runtime-version
   command: "gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120"
   network:
     port: 8080
