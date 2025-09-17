@@ -1,38 +1,25 @@
-# apprunner.yaml (place at repo root)
+# apprunner.yaml (use Python 3.11 runtime so package wheels match)
 version: 1.0
-# Use Python managed runtime (major version). We'll lock a runtime version below if needed.
 runtime: python3
 
 build:
   commands:
-    # pre-build (optional)
     pre-build:
       - python -m pip install --upgrade pip
-    # build: install dependencies and run an optional small script to fetch NLTK data
     build:
       - pip install -r requirements.txt
       - python download_nltk.py || echo "download_nltk.py not found or failed"
-    # post-build (optional)
     post-build:
       - echo "build finished"
 
 run:
-  # Optional: lock to a minor runtime version (uncomment to pin)
-  # runtime-version: 3.11
-  # pre-run - only for revised build (not required here)
-  # pre-run:
-  #   - some command
-  # command: start command for your Flask app
+  # Lock to Python 3.11 for the build/runtime environment
+  runtime-version: 3.11
   command: >
     gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120
   network:
     port: 8080
 
-# runtime & build env variables (optional) - accessible during build and run
-# example environment variables you might want to pass
-# build.env:
-#   - name: SOME_BUILD_VAR
-#     value: "value"
 run:
   env:
     - name: FLASK_ENV
