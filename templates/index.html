@@ -61,17 +61,6 @@
       <div class="alert alert-danger mt-3" role="alert">{{message}}</div>
       {% endif %}
     </form>
-
-    <form method="post" action="/predictSentiment" class="mt-5">
-      <label for="reviewText" class="form-label">Enter your Review here</label>
-      <textarea class="form-control mb-3" name="reviewText" rows="3" id="reviewText"></textarea>
-      <input type="submit" class="btn btn-primary" value="Predict Sentiment">
-      {% if sentiment == 1%}
-      <div class="alert alert-success mt-3" role="alert">Entered Review Text is predicted to be Positive</div>
-      {% elif sentiment == 0%}
-      <div class="alert alert-danger mt-3" role="alert">Entered Review Text is predicted to be Negative</div>
-      {% endif %}
-    </form>
   </div>
 
   <footer class="bg-light text-center text-lg-start mt-5">

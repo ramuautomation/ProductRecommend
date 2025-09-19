@@ -5,19 +5,29 @@ import os
 
 app = Flask(__name__)
 
+#import nltk
+
 def ensure_nltk_data():
-    packages = ["stopwords", "punkt", "averaged_perceptron_tagger", "wordnet", "omw-1.4"]
-    for pkg in packages:
+    # list of (nltk.data.find path, nltk.download name) pairs
+    resources = [
+        ("tokenizers/punkt", "punkt"),
+        ("tokenizers/punkt_tab/english", "punkt_tab"),
+        ("corpora/stopwords", "stopwords"),
+        ("corpora/wordnet", "wordnet"),
+        ("corpora/omw-1.4", "omw-1.4"),
+        # averaged_perceptron_tagger JSON resource & language-specific variant
+        ("taggers/averaged_perceptron_tagger", "averaged_perceptron_tagger"),
+        ("taggers/averaged_perceptron_tagger_eng", "averaged_perceptron_tagger"),
+    ]
+
+    for path, pkg in resources:
         try:
-            if pkg == "punkt":
-                nltk.data.find("tokenizers/punkt")
-            else:
-                nltk.data.find(f"corpora/{pkg}")
+            nltk.data.find(path)
         except LookupError:
-            print(f"NLTK: downloading {pkg}...")
+            print(f"NLTK: downloading {pkg} for path {path} ...")
             nltk.download(pkg)
 
-# Ensure NLTK packages are present BEFORE importing model code that may use them
+# call once at startup (before importing modules that use NLTK)
 ensure_nltk_data()
 print("NLTK data ensured — now importing model module")
 
@@ -50,11 +60,6 @@ def prediction():
     else:
         return render_template("index.html", message="User Name doesn't exists, No product recommendations at this point of time!", alert_type="danger")
 
-@app.route('/predictSentiment', methods=['POST'])
-def predict_sentiment():
-    review_text = request.form["reviewText"]
-    pred_sentiment = sentiment_model.classify_sentiment(review_text)
-    return render_template("index.html", sentiment=pred_sentiment)
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8080))
