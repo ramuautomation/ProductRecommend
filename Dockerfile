@@ -52,4 +52,5 @@ ENV PORT 8080
 EXPOSE 8080
 
 # new — shell expands $PORT at runtime, default to 8080 if not set
-CMD ["sh", "-c", "exec gunicorn app:app --bind 0.0.0.0:${PORT:-8080} --workers 2 --threads 4"]
+CMD ["sh","-c","echo RUNTIME PORT='$PORT' && exec gunicorn app:app --bind 0.0.0.0:${PORT:-8080} --workers 2 --threads 4"]
+
