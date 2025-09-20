@@ -25,52 +25,12 @@ COPY requirements.txt /app/requirements.txt
 RUN python -m pip install --upgrade pip setuptools wheel
 RUN pip install --no-cache-dir -r requirements.txt
 
-# --- Install NLTK data by downloading the nltk_data gh-pages tarball and copying packages ---
-RUN set -eux; \
-    DEST=/usr/local/share/nltk_data; \
-    mkdir -p "$DEST"; \
-    # download the gh-pages tarball and extract only the packages/* subdir
-    TAR_URL="https://github.com/nltk/nltk_data/archive/refs/heads/gh-pages.tar.gz"; \
-    echo "Downloading $TAR_URL"; \
-    wget -q -O /tmp/nltk_data.tar.gz "$TAR_URL"; \
-    mkdir -p /tmp/nltk_data_unpack; \
-    tar -xzf /tmp/nltk_data.tar.gz -C /tmp/nltk_data_unpack --strip-components=2 "nltk_data-gh-pages/packages/"; \
-    # copy the necessary package directories into DEST (create parents)
-    mkdir -p "$DEST/tokenizers" "$DEST/corpora" "$DEST/taggers"; \
-    cp -R /tmp/nltk_data_unpack/tokenizers/punkt "$DEST/tokenizers/punkt"; \
-    cp -R /tmp/nltk_data_unpack/tokenizers/punkt_tab "$DEST/tokenizers/punkt_tab"; \
-    cp -R /tmp/nltk_data_unpack/corpora/stopwords "$DEST/corpora/stopwords"; \
-    cp -R /tmp/nltk_data_unpack/corpora/wordnet "$DEST/corpora/wordnet"; \
-    cp -R /tmp/nltk_data_unpack/corpora/omw-1.4 "$DEST/corpora/omw-1.4"; \
-    cp -R /tmp/nltk_data_unpack/taggers/averaged_perceptron_tagger "$DEST/taggers/averaged_perceptron_tagger"; \
-    cp -R /tmp/nltk_data_unpack/taggers/averaged_perceptron_tagger_eng "$DEST/taggers/averaged_perceptron_tagger_eng"; \
-    # cleanup
-    rm -rf /tmp/nltk_data.tar.gz /tmp/nltk_data_unpack; \
-    # make sure files are readable by non-root user and directories accessible
-    chmod -R a+rX "$DEST"; \
-    echo "NLTK data copied to $DEST"
+# Copy vendored NLTK data into the image (deterministic)
+COPY nltk_data /usr/local/share/nltk_data
+RUN chmod -R a+rX /usr/local/share/nltk_data || true
 
 # Ensure NLTK searches our directory first
 ENV NLTK_DATA=/usr/local/share/nltk_data:/home/appuser/nltk_data
-
-# Verify presence
-RUN python - <<'PY'
-from nltk.data import find
-req = ['tokenizers/punkt','tokenizers/punkt_tab/english','corpora/stopwords',
-       'corpora/wordnet','corpora/omw-1.4',
-       'taggers/averaged_perceptron_tagger','taggers/averaged_perceptron_tagger_eng']
-missing=[]
-for r in req:
-    try:
-        p=find(r)
-        print("FOUND", r, "->", p)
-    except Exception as e:
-        print("MISSING", r, ":", e)
-        missing.append(r)
-if missing:
-    raise SystemExit("Missing NLTK resources after copy: "+str(missing))
-print("NLTK verification OK")
-PY
 
 # Copy application code
 COPY . /app
