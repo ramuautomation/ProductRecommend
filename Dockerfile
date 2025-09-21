@@ -1,55 +1,54 @@
-# Dockerfile — deterministic build using python 3.11 and required system libs
+# Dockerfile — python 3.11 slim with NLTK corpora predownload
 FROM python:3.11-slim
 
-# Install system deps required to build/run numpy, scipy, pandas, xgboost
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system deps required for numeric libs and build
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    gcc g++ gfortran \
-    git \
-    ca-certificates \
-    pkg-config \
-    libopenblas-dev \
-    liblapack-dev \
-    libblas-dev \
-    libgfortran5 \
-    libffi-dev \
-    libssl-dev \
-    wget \
-	 unzip \
+    build-essential gcc g++ gfortran git ca-certificates pkg-config \
+    libopenblas-dev liblapack-dev libblas-dev libgfortran5 libffi-dev \
+    libssl-dev wget unzip curl \
  && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user (security)
+ARG APP_USER=appuser
+ARG APP_UID=1000
+RUN groupadd -g ${APP_UID} ${APP_USER} || true \
+ && useradd -m -s /bin/bash -u ${APP_UID} -g ${APP_USER} ${APP_USER}
 
 WORKDIR /app
 
-# Copy requirements & install Python deps (upgrade pip tooling first)
+# Copy requirements and install python deps
 COPY requirements.txt /app/requirements.txt
-RUN python -m pip install --upgrade pip setuptools wheel
-RUN pip install --no-cache-dir -r requirements.txt
+RUN python -m pip install --upgrade pip setuptools wheel \
+ && pip install --no-cache-dir -r /app/requirements.txt
 
-# Copy vendored NLTK data into the image (deterministic)
-COPY nltk_data /usr/local/share/nltk_data
-RUN chmod -R a+rX /usr/local/share/nltk_data || true
+# Configure NLTK data location and create folder
+ENV NLTK_DATA=/usr/share/nltk_data
+RUN mkdir -p ${NLTK_DATA}
 
-# Ensure NLTK searches our directory first
-ENV NLTK_DATA=/usr/local/share/nltk_data:/home/appuser/nltk_data
+# Pre-download required NLTK packages at build time to avoid runtime lookup errors
+# (adjust list if you need more/less)
+RUN python - <<'PY'
+import nltk, sys
+pkgs = ['punkt', 'stopwords', 'averaged_perceptron_tagger', 'wordnet','punkt_tab','omw-1.4','averaged_perceptron_tagger_eng']
+for pkg in pkgs:
+    try:
+        nltk.download(pkg, download_dir='/usr/share/nltk_data')
+    except Exception as e:
+        print('NLTK download failed for', pkg, e, file=sys.stderr)
+PY
 
-# Copy application code
+# Copy app code
 COPY . /app
 
-# Create a writable home nltk_data for appuser and set permissions
-RUN useradd --create-home appuser || true \
- && mkdir -p /home/appuser/nltk_data \
- && chown -R appuser:appuser /home/appuser/nltk_data \
- && chmod -R 755 /usr/local/share/nltk_data
+# Ensure app and nltk_data owned by non-root user
+RUN chown -R ${APP_USER}:${APP_USER} /app /usr/share/nltk_data
 
-# Make sure NLTK_DATA env includes build-time location first, then user home
-ENV NLTK_DATA=/usr/local/share/nltk_data:/home/appuser/nltk_data
-
-# Switch to non-root user
-USER appuser
-
-# Railway will set $PORT at runtime; expose a default
-ENV PORT 8080
+# Expose port and switch to non-root user
+ENV PORT=8080
 EXPOSE 8080
+USER ${APP_USER}
 
-# new — shell expands $PORT at runtime, default to 8080 if not set
-CMD gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --threads 4
+# Start gunicorn (respects $PORT)
+CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:8080", "--workers", "2", "--threads", "4"]

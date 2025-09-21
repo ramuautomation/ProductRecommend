@@ -1,9 +1,9 @@
 # app.py (Option A - Eager load, use with --preload)
 from flask import Flask, request, render_template
-import nltk
+#import nltk
 import os
-from nltk.data import find
-from nltk import data as nltk_data
+#from nltk.data import find
+#from nltk import data as nltk_data
 
 
 app = Flask(__name__)
